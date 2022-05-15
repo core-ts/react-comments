@@ -1,0 +1,25 @@
+{
+  "name": "reactx-comments",
+  "version": "0.0.6",
+  "description": "react-comments",
+  "main": "./lib/index.js",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build:lib": "tsc",
+    "clean:lib": "rimraf lib"
+  },
+  "devDependencies": {
+    "tslint": "5.10.0",
+    "typescript": "^3.8.3"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/core-ts/react-comments"
+  },
+  "keywords": [
+    "react-comments"
+  ]
+}
