@@ -1,6 +1,6 @@
 {
   "name": "reactx-comments",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "react-comments",
   "main": "./lib/index.js",
   "types": "./src/index.ts",

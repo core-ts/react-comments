@@ -6,16 +6,17 @@ import { Comment, CommentOrder, CommentThead, ListResult, StringMap } from './mo
 export * from './CommentItem';
 export * from './model';
 
-interface CommentTools {
+export interface CommentTools {
   nextPageToken?: string;
   order: CommentOrder;
 }
-interface CommentsProps {
+export interface CommentsProps {
   videoId?: string;
   getCommentThreads?: (videoId: string, order?: CommentOrder, max?: number, nextPageToken?: string) => Promise<ListResult<CommentThead>>;
   getComments?: (id: string, max?: number, nextPageToken?: string) => Promise<ListResult<Comment>>;
   order?: CommentOrder;
   resource?: StringMap;
+  format?: (f: string, ...args: any[]) => string;
 }
 export const Comments = (props: CommentsProps) => {
   const [commentThreads, setCommentThreads] = React.useState<CommentThead[]>([]);
@@ -29,7 +30,7 @@ export const Comments = (props: CommentsProps) => {
       if (props.videoId && props.getCommentThreads) {
         const oder = props.order ? props.order : tools.order;
         props.getCommentThreads(props.videoId, oder).then(res => {
-          setTools((prev) => ({ ...prev, nextPageToken: res.nextPageToken, order: oder }));
+          setTools((prev: any) => ({ ...prev, nextPageToken: res.nextPageToken, order: oder }));
           setCommentThreads(res.list);
         });
       }
@@ -41,7 +42,7 @@ export const Comments = (props: CommentsProps) => {
     if (props.videoId && props.getCommentThreads) {
       const sort = e.target.value as CommentOrder;
       props.getCommentThreads(props.videoId, sort).then(res => {
-        setTools((prev) => ({ ...prev, order: sort, nextPageToken: res.nextPageToken }));
+        setTools((prev: any) => ({ ...prev, order: sort, nextPageToken: res.nextPageToken }));
         setCommentThreads(res.list);
       });
     }
@@ -50,27 +51,28 @@ export const Comments = (props: CommentsProps) => {
   const loadMore = () => {
     if (props.videoId && props.getCommentThreads) {
       props.getCommentThreads(props.videoId, tools.order, 20, tools.nextPageToken).then(res => {
-        setTools((prev) => ({ ...prev, nextPageToken: res.nextPageToken }));
+        setTools((prev: any) => ({ ...prev, nextPageToken: res.nextPageToken }));
         const newThreads = [...commentThreads].concat(res.list);
         setCommentThreads(newThreads);
       });
     }
   };
   return (!props.getCommentThreads || !props.videoId ? null :
-    React.createElement("div", { className: 'comment-threads-container' }, commentThreads && (React.createElement("div", null,
-        React.createElement("div", { className: 'comments-bar' },
-            React.createElement("h2", { className: 'comments-total' }, props.resource ? props.resource.comments : 'Comments'),
-            React.createElement("select", { className: 'comments-sort btn button', onChange: handleSort, defaultValue: tools.order },
-                React.createElement("option", { value: 'relevance' }, props.resource ? props.resource.top_comments : 'Top Comments'),
-                React.createElement("option", { value: 'time' }, props.resource ? props.resource.newest_first : 'Newest First'))),
-        commentThreads.map(function (comment) { return (React.createElement(CommentItem, { key: comment.id, commentId: comment.id, totalReplyCount: comment.totalReplyCount, authorProfileImageUrl: comment.authorProfileImageUrl, authorDisplayName: comment.authorDisplayName, likeCount: comment.likeCount, textDisplay: comment.textDisplay, getComments: props.getComments })); }),
-        tools.nextPageToken && React.createElement("button", { type: 'button', id: 'btnMore', name: 'btnMore', className: 'btn-more', onClick: loadMore }, props.resource ? props.resource.button_more : 'More...')))));
+    React.createElement('div', { className: 'comment-threads-container' }, commentThreads && commentThreads.length > 0 && (React.createElement('div', null,
+        React.createElement('div', { className: 'comments-bar' },
+            React.createElement('h2', { className: 'comments-total' }, props.resource ? props.resource.comments : 'Comments'),
+            React.createElement('select', { className: 'comments-sort btn button', onChange: handleSort, defaultValue: tools.order },
+                React.createElement('option', { value: 'relevance' }, props.resource ? props.resource.top_comments : 'Top Comments'),
+                React.createElement('option', { value: 'time' }, props.resource ? props.resource.newest_first : 'Newest First'))),
+        // tslint:disable-next-line:only-arrow-functions
+        commentThreads.map(function (comment: any) { return (React.createElement(CommentItem, { key: comment.id, commentId: comment.id, totalReplyCount: comment.totalReplyCount, authorProfileImageUrl: comment.authorProfileImageUrl, authorDisplayName: comment.authorDisplayName, likeCount: comment.likeCount, textDisplay: comment.textDisplay, getComments: props.getComments, resource: props.resource, format: props.format })); }),
+        tools.nextPageToken && React.createElement('button', { type: 'button', id: 'btnMore', name: 'btnMore', className: 'btn-more', onClick: loadMore }, props.resource ? props.resource.button_more : 'More...')))));
   /*
   return (
     !props.getCommentThreads || !props.videoId ? null :
       <div className='comment-threads-container'>
         {
-          commentThreads && (
+          commentThreads && commentThreads.length > 0 && (
             <div>
               <div className='comments-bar'>
                 <h2 className='comments-total'>{props.resource ? props.resource.comments : 'Comments'}</h2>
@@ -90,6 +92,8 @@ export const Comments = (props: CommentsProps) => {
                     likeCount={comment.likeCount}
                     textDisplay={comment.textDisplay}
                     getComments={props.getComments}
+                    resource={props.resource}
+                    format={props.format}
                   />
                 ))
               }

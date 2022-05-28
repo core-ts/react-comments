@@ -10,6 +10,7 @@ export interface CommentProps {
   textDisplay: string;
   max?: number;
   resource?: StringMap;
+  format?: (f: string, ...args: any[]) => string;
   getComments?: (
     id: string,
     max?: number,
@@ -50,33 +51,29 @@ export function CommentItem(props: CommentProps): any {
       });
     }
   };
-  return (React.createElement("div", { className: 'row comments' },
-        React.createElement("div", { className: 'col s12 m2 l2 xl1' },
-            React.createElement("div", { className: 'img-user' },
-                React.createElement("img", { src: props.authorProfileImageUrl, alt: 'Author Profile' }))),
-        React.createElement("div", { className: 'col s12 m10 l10 xl11' },
-            React.createElement("h3", { className: 'author' }, props.authorDisplayName),
-            React.createElement("p", { dangerouslySetInnerHTML: { __html: props.textDisplay } }),
-            React.createElement("h5", null,
+  return (!props.commentId || props.commentId.length === 0 ? null :
+    React.createElement('div', { className: 'row comments' },
+        React.createElement('div', { className: 'col s12 m2 l2 xl1' },
+            React.createElement('div', { className: 'img-user' },
+                React.createElement('img', { src: props.authorProfileImageUrl, alt: 'Author Profile' }))),
+        React.createElement('div', { className: 'col s12 m10 l10 xl11' },
+            React.createElement('h3', { className: 'author' }, props.authorDisplayName),
+            React.createElement('p', { dangerouslySetInnerHTML: { __html: props.textDisplay } }),
+            !props.likeCount || props.likeCount <= 0 ? null : React.createElement('h5', null,
                 props.resource ? props.resource.like : 'Like',
-                ": ",
+                ': ',
                 props.likeCount),
-            props.totalReplyCount && props.totalReplyCount > 0 && (React.createElement(React.Fragment, null,
-                props.getComments ? (React.createElement("button", { className: 'view', onClick: handleShowMore },
-                    show ? 'Hide' : 'View',
-                    " ",
-                    props.totalReplyCount,
-                    " ",
-                    props.resource ? props.resource.replies : 'replies')) : React.createElement(React.Fragment, null),
-                show ? (comments.map(function (c) { return (React.createElement(CommentItem, { key: c.id, commentId: c.id, authorProfileImageUrl: c.authorProfileImageUrl, authorDisplayName: c.authorDisplayName, likeCount: c.likeCount, textDisplay: c.textDisplay })); })) : (React.createElement(React.Fragment, null)))),
-            nextPage && (React.createElement("button", { className: 'view', onClick: function () { return loadMore(props.commentId); } }, props.resource ? props.resource.view_more_replies : 'View more replies')))));
+            !props.getComments || !props.totalReplyCount || props.totalReplyCount === 0 ? null :
+                React.createElement('button', { className: 'view', onClick: handleShowMore }, show ? props.format && props.resource ? props.format(props.resource.hide_replies, props.totalReplyCount) : 'Hide ' + props.totalReplyCount + ' replies' : props.format && props.resource ? props.format(props.resource.view_replies, props.totalReplyCount) : 'View ' + props.totalReplyCount + ' replies'),
+            // tslint:disable-next-line:only-arrow-functions
+            !props.getComments || !show ? null : comments.map(function (c: any) { return (React.createElement(CommentItem, { key: c.id, commentId: c.id, authorProfileImageUrl: c.authorProfileImageUrl, authorDisplayName: c.authorDisplayName, likeCount: c.likeCount, textDisplay: c.textDisplay })); }),
+            show && nextPage &&
+                // tslint:disable:only-arrow-functions
+                // tslint:disable-next-line:object-literal-shorthand
+                React.createElement('button', { className: 'view', onClick: function () { return loadMore(props.commentId); } }, props.resource ? props.resource.view_more_replies : 'View more replies'))));
   /*
-    React.useEffect(() => {
-      console.log('comments', comments, show);
-    }, [show]);
-  */
- /*
   return (
+    !props.commentId || props.commentId.length === 0 ? null :
     <div className='row comments'>
       <div className='col s12 m2 l2 xl1'>
         <div className='img-user'>
@@ -86,35 +83,27 @@ export function CommentItem(props: CommentProps): any {
       <div className='col s12 m10 l10 xl11'>
         <h3 className='author'>{props.authorDisplayName}</h3>
         <p dangerouslySetInnerHTML={{ __html: props.textDisplay }} />
-        <h5>{props.resource ? props.resource.like : 'Like'}: {props.likeCount}</h5>
-        {props.totalReplyCount && props.totalReplyCount > 0 && (
-          <>
-            {props.getComments ? (
-              <button className='view' onClick={handleShowMore}>
-                {show ? 'Hide' : 'View'} {props.totalReplyCount} {props.resource ? props.resource.replies : 'replies'}
-              </button>
-            ) : <></>}
-            {show ? (
-              comments.map((c) => (
-                <CommentItem
-                  key={c.id}
-                  commentId={c.id}
-                  authorProfileImageUrl={c.authorProfileImageUrl}
-                  authorDisplayName={c.authorDisplayName}
-                  likeCount={c.likeCount}
-                  textDisplay={c.textDisplay}
-                />
-              ))
-            ) : (
-              <></>
-            )}
-          </>
-        )}
-        {nextPage && (
+        {!props.likeCount || props.likeCount <= 0 ? null : <h5>{props.resource ? props.resource.like : 'Like'}: {props.likeCount}</h5>}
+        {!props.getComments || !props.totalReplyCount || props.totalReplyCount === 0 ? null :
+          <button className='view' onClick={handleShowMore}>
+            {show ? props.format && props.resource ? props.format(props.resource.hide_replies, props.totalReplyCount) : `Hide ${props.totalReplyCount} replies` : props.format && props.resource ? props.format(props.resource.view_replies, props.totalReplyCount) : `View ${props.totalReplyCount} replies`}
+          </button>
+        }
+        {!props.getComments || !show ? null : comments.map((c) => (
+          <CommentItem
+            key={c.id}
+            commentId={c.id}
+            authorProfileImageUrl={c.authorProfileImageUrl}
+            authorDisplayName={c.authorDisplayName}
+            likeCount={c.likeCount}
+            textDisplay={c.textDisplay}
+          />
+        ))}
+        {show && nextPage &&
           <button className='view' onClick={() => loadMore(props.commentId)}>
             {props.resource ? props.resource.view_more_replies : 'View more replies'}
           </button>
-        )}
+        }
       </div>
     </div>
   );*/
